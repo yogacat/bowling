@@ -72,10 +72,10 @@ public class PlayerService {
      * @return collection of the {@link PlayerRecord}
      */
     public List<PlayerRecord> getRating() {
-        Player player = new Player();
-        player.setFinished(true);
+        Player playerExample = new Player();
+        playerExample.setFinished(true);
 
-        Example<Player> example = Example.of(player);
+        Example<Player> example = Example.of(playerExample);
         List<Player> players = playerRepository.findAll(example);
         return players.stream()
             .map(p -> new PlayerRecord(p.getName(), p.getTotalScore()))
