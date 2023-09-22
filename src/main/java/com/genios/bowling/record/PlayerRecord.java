@@ -1,7 +1,7 @@
 package com.genios.bowling.record;
 
 /**
- * @author Olena Openko 22.09.2023
+ * Contains data for the score board.
  */
 public record PlayerRecord(String name, Integer totalScore) {
 
