@@ -83,6 +83,21 @@ public class PlayerService {
             .toList();
     }
 
+    /**
+     * Returns {@link Player} entity if there is one with this id found.
+     *
+     * @param userId Long player id
+     * @return {@link Player}
+     */
+    public Player getPlayer(Long userId) {
+        Optional<Player> optionalPlayer = playerRepository.findById(userId);
+        if (optionalPlayer.isPresent()) {
+            return optionalPlayer.get();
+        } else {
+            throw new PlayerNotFoundException("No player with the id " + userId + " was found");
+        }
+    }
+
     private boolean isFreeLines() {
         int ongoingGames = playerRepository.countByIsFinishedFalse();
         return ongoingGames < maxLines;
