@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Handles operations on a player.
@@ -42,7 +41,6 @@ public class PlayerService {
             Player player = new Player(name);
             playerRepository.save(player);
 
-            //todo olo check if it's null
             return player.getId();
         } else {
             throw new NoFreeLinesException("No free lines are left, please try again later");
@@ -82,7 +80,7 @@ public class PlayerService {
         return players.stream()
             .map(p -> new PlayerRecord(p.getName(), p.getTotalScore()))
             .sorted(Comparator.comparingLong(PlayerRecord::totalScore).reversed())
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private boolean isFreeLines() {
