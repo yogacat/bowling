@@ -1,0 +1,13 @@
+version: '3'
+services:
+  postgres-database:
+    image: postgres:15
+    container_name: postgres-container-bowling
+    environment:
+      POSTGRES_DB: bowling
+      POSTGRES_USER: olena
+      POSTGRES_PASSWORD: ofcoursenot1234
+    volumes:
+      - ./postgres_bowling_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
