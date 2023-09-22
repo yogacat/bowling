@@ -44,11 +44,13 @@ class GameServiceTest {
     @Test
     void shouldReturnTrueWhenNoFramesAreLeftNoStrike() {
         //given
-        Roll roll1 = new Roll(1L, 1L, 1, 7, "/", null);
-        Roll roll2 = new Roll(2L, 1L, 2, 3, "/", null);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, null, List.of(roll1, roll2));
-        Player player = new Player(1L, "Max", 100, true, List.of(lastFrame));
+        Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
+        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        frameRepository.save(lastFrame);
+        Roll roll1 = new Roll(1L, 1L, 1, 7, "/", lastFrame);
+        Roll roll2 = new Roll(2L, 1L, 2, 3, "/", lastFrame);
+        rollRepository.saveAll(List.of(roll1, roll2));
 
         //then
         assertTrue(gameService.isGameOver(1L));
@@ -57,12 +59,14 @@ class GameServiceTest {
     @Test
     void shouldReturnTrueWhenNoFramesAreLeftLastStrike() {
         //given
-        Roll roll1 = new Roll(1L, 1L, 1, 10, "X", null);
-        Roll roll2 = new Roll(2L, 1L, 2, 3, "/", null);
-        Roll roll3 = new Roll(3L, 1L, 3, 7, "/", null);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, null, List.of(roll1, roll2, roll3));
-        Player player = new Player(1L, "Max", 100, true, List.of(lastFrame));
+        Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
+        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        frameRepository.save(lastFrame);
+        Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
+        Roll roll2 = new Roll(2L, 1L, 2, 3, "/", lastFrame);
+        Roll roll3 = new Roll(3L, 1L, 3, 7, "/", lastFrame);
+        rollRepository.saveAll(List.of(roll1, roll2, roll3));
 
         //then
         assertTrue(gameService.isGameOver(1L));
