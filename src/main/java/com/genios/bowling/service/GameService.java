@@ -114,6 +114,10 @@ public class GameService {
             return true;
         }
 
+        if (frame.getFrameNumber() != 10 && rolls.size() == 2) {
+            return false;
+        }
+
         if (rolls.size() == 3) {
             return false;
         }
