@@ -14,11 +14,14 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class Roll {
 
     @Id
@@ -26,14 +29,17 @@ public class Roll {
     private Long id;
 
     @Column(name = "frame_id")
+    @NonNull
     private Long frameId;
 
     @Min(1)
     @Max(3)
+    @NonNull
     private Integer rollNumber;
 
     @Min(0)
     @Max(10)
+    @NonNull
     private Integer pins;
 
     @Nullable

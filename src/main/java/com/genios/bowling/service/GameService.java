@@ -1,12 +1,11 @@
 package com.genios.bowling.service;
 
+import com.genios.bowling.exception.FrameNotFoundException;
 import com.genios.bowling.exception.GameAlreadyFinishedException;
+import com.genios.bowling.exception.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
-import com.genios.bowling.persistance.repository.FrameRepository;
-import com.genios.bowling.persistance.repository.PlayerRepository;
-import com.genios.bowling.persistance.repository.RollRepository;
 import com.genios.bowling.record.FrameRecord;
 import com.genios.bowling.record.NextFrameRecord;
 import jakarta.transaction.Transactional;
@@ -22,20 +21,15 @@ import java.util.Optional;
 @Service
 public class GameService {
 
-    private final PlayerRepository playerRepository;
-    private final FrameRepository frameRepository;
-    private final RollRepository rollRepository;
-
     private final PlayerService playerService;
+    private final FrameService frameService;
+    private final RollService rollService;
 
     @Autowired
-    public GameService(PlayerRepository playerRepository, FrameRepository frameRepository,
-        RollRepository rollRepository,
-        PlayerService playerService) {
-        this.playerRepository = playerRepository;
-        this.frameRepository = frameRepository;
-        this.rollRepository = rollRepository;
+    public GameService(PlayerService playerService, FrameService frameService, RollService rollService) {
+        this.rollService = rollService;
         this.playerService = playerService;
+        this.frameService = frameService;
     }
 
     /**
@@ -79,25 +73,42 @@ public class GameService {
 
         List<Frame> frames = player.getFrames();
         if (frames.isEmpty()) {
-            return new NextFrameRecord(userId, 1, 1);
+            return new NextFrameRecord(userId, 1, 1, true);
         }
 
         Optional<Frame> optionalLastFrame = getLastFrame(frames);
+        if (optionalLastFrame.isEmpty()) {
+            throw new FrameNotFoundException("Last frame not found for the user with id " + userId);
+        }
         Frame lastFrame = optionalLastFrame.get();
         if (areRollsLeftInFrame(lastFrame)) {
             Optional<Roll> optionalLastRoll = getLastRoll(lastFrame.getRolls());
+            if (optionalLastRoll.isEmpty()) {
+                throw new RollNotFoundException(
+                    "Last roll not found for the user with id " + userId + " within the frame number "
+                        + lastFrame.getFrameNumber());
+            }
             Roll lastRoll = optionalLastRoll.get();
-            return new NextFrameRecord(userId, lastFrame.getFrameNumber(), lastRoll.getRollNumber() + 1);
+            return new NextFrameRecord(userId, lastFrame.getFrameNumber(), lastRoll.getRollNumber() + 1, false);
         }
 
-        return new NextFrameRecord(userId, lastFrame.getFrameNumber() + 1, 1);
+        return new NextFrameRecord(userId, lastFrame.getFrameNumber() + 1, 1, true);
     }
 
-    public void saveRollResult(Long userId, Long frameId, Long rollId, Integer pins) {
 
+    /**
+     * Will save the roll and a frame if there are no rolls on a frame left.
+     *
+     * @param nextFrameRecord {@link NextFrameRecord}info about the user and the frame and roll he currently used
+     * @param pins Integer now many pins were knocked off during the roll
+     */
+    public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
+        Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
+            nextFrameRecord.isNewFrame());
+        rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
     }
 
-    public List<FrameRecord> getPlayerScores(Long userId) {
+    public List<FrameRecord> calculatePlayerScores(Long userId) {
 
         return List.of();
     }
