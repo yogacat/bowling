@@ -131,9 +131,6 @@ public class FrameService {
         frameRepository.save(frame);
 
         this.recalculateCache(frame.getUserId());
-        System.out.println("X");
-
-        //todo save both
     }
 
     private void addScoreToCache(Long userId, int frameNumber, int rollNumber, int pins, int bonus) {
@@ -168,7 +165,7 @@ public class FrameService {
 
                 this.cleanupCacheTopAndFinalizeFrames(userId);
             }
-        } else if (cacheRecords.peekFirst().bonus() == 0) {
+        } else if (!cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0) {
             //remove anything with no bonus from the top
             while (!cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0) {
                 CacheRecord headRecord = cacheRecords.pollFirst();

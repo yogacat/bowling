@@ -98,6 +98,18 @@ public class PlayerService {
         }
     }
 
+    /**
+     * Saves the player's total score and marks the game as finished.
+     *
+     * @param player {@link Player}
+     * @param lastFrameScore int final score
+     */
+    public void saveFinalScore(Player player, int lastFrameScore) {
+        player.setFinished(true);
+        player.setTotalScore(lastFrameScore);
+        playerRepository.saveAndFlush(player);
+    }
+
     private boolean isFreeLines() {
         int ongoingGames = playerRepository.countByIsFinishedFalse();
         return ongoingGames < maxLines;

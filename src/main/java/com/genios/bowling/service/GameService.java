@@ -2,6 +2,7 @@ package com.genios.bowling.service;
 
 import com.genios.bowling.exception.FrameNotFoundException;
 import com.genios.bowling.exception.GameAlreadyFinishedException;
+import com.genios.bowling.exception.GameNotFinishedException;
 import com.genios.bowling.exception.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
@@ -21,7 +22,6 @@ import java.util.Optional;
 public class GameService {
 
     private final EntityManager entityManager;
-    //todo olo I need a cache for the last up to 3 rolls
 
     private final PlayerService playerService;
     private final FrameService frameService;
@@ -113,10 +113,32 @@ public class GameService {
         Roll currentRoll = rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
 
         frameService.updateFrameScore(frame, currentRoll);
+
+        if (!frameService.areRollsLeftInFrame(frame) && frame.getFrameNumber() == 10) {
+            Player player = playerService.getPlayer(frame.getUserId());
+            entityManager.flush();
+            entityManager.refresh(player);
+            playerService.saveFinalScore(player, getLastFrameScore(player.getFrames()));
+        }
+    }
+
+    private int getLastFrameScore(List<Frame> frames) {
+        Optional<Frame> optionalFrame = frameService.getLastFrame(frames);
+
+        if (optionalFrame.isPresent() && optionalFrame.get().getFrameNumber() == 10 && optionalFrame.get()
+            .isFinalScore()) {
+            return optionalFrame.get().getFrameScore();
+        }
+        throw new GameNotFinishedException(
+            "No last frame received, frame is not the last one or frame calculation is not finished yet");
     }
 
     public int getFinalResult(long userId) {
+        Player player = playerService.getPlayer(userId);
+        if (player.isFinished()) {
+            return player.getTotalScore();
+        }
 
-        return 0;
+        throw new GameNotFinishedException("Game is not marked as finished for the user id" + userId);
     }
 }
