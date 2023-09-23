@@ -133,8 +133,8 @@ class GameServiceTest {
 
         //then
         assertNotNull(nextFrameRecord);
-        assertEquals(5, nextFrameRecord.frameNumber());
-        assertEquals(2, nextFrameRecord.rollNumber());
+        assertEquals(6, nextFrameRecord.frameNumber());
+        assertEquals(1, nextFrameRecord.rollNumber());
     }
 
     @Test
