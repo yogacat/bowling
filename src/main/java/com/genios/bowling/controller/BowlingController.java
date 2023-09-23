@@ -1,5 +1,6 @@
 package com.genios.bowling.controller;
 
+import com.genios.bowling.record.response.IntermediateScore;
 import com.genios.bowling.record.response.PlayerScore;
 import com.genios.bowling.record.request.Roll;
 import com.genios.bowling.record.response.GameOver;
@@ -27,6 +28,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 public class BowlingController {
+    //todo olo logging
 
     private final PlayerService playerService;
     private final GameService gameService;
@@ -54,7 +56,7 @@ public class BowlingController {
 
     @PostMapping(value = "/players/{id}/frames", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<?> saveRoll(@PathVariable @NotBlank Long id, @RequestBody @Valid Roll roll) {
+    public ResponseEntity<?> saveRoll(@PathVariable @NotBlank Long id, @RequestBody @Valid @NotNull Roll roll) {
         NextFrameRecord frameRecord = new NextFrameRecord(id, roll.frameNumber(), roll.rollNumber());
         int pins = roll.pins();
         gameService.saveRollResult(frameRecord, pins);
@@ -68,8 +70,8 @@ public class BowlingController {
     }
 
     @GetMapping(value = "/players/{id}/scores", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PlayerScore> getPlayerScore(@PathVariable @NotBlank Long id) {
-        PlayerScore playerScore = gameService.getPlayerScore(id);
+    public ResponseEntity<IntermediateScore> getPlayerScore(@PathVariable @NotBlank Long id) {
+        IntermediateScore playerScore = gameService.getIntermediateScore(id);
         return ResponseEntity.status(HttpStatus.OK).body(playerScore);
     }
 

@@ -64,4 +64,14 @@ public class RollService {
         }
         return optionalFirstRoll.get();
     }
+
+    /**
+     * Return optional {@link Roll} if it was found
+     *
+     * @param frameId Long id of the {@link Frame}
+     * @param rollNumber Integer number of the {@link Roll}
+     */
+    public Optional<Roll> getRoll(Long frameId, Integer rollNumber) {
+        return rollRepository.findOneByFrameIdAndRollNumber(frameId, rollNumber);
+    }
 }

@@ -3,10 +3,12 @@ package com.genios.bowling.service;
 import com.genios.bowling.exception.FrameNotFoundException;
 import com.genios.bowling.exception.GameAlreadyFinishedException;
 import com.genios.bowling.exception.GameNotFinishedException;
+import com.genios.bowling.exception.RollAlreadyExistsException;
 import com.genios.bowling.exception.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
+import com.genios.bowling.record.response.IntermediateScore;
 import com.genios.bowling.record.response.NextFrameRecord;
 import com.genios.bowling.record.response.PlayerScore;
 import jakarta.persistence.EntityManager;
@@ -111,6 +113,13 @@ public class GameService {
     public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
         Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
             nextFrameRecord.rollNumber());
+        Optional<Roll> rollOptional = rollService.getRoll(frame.getId(), nextFrameRecord.rollNumber());
+        if (rollOptional.isPresent()) {
+            throw new RollAlreadyExistsException(
+                "For the frame " + nextFrameRecord.frameNumber() + " roll " + nextFrameRecord.rollNumber()
+                    + " was already saved.");
+        }
+
         Roll currentRoll = rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
 
         frameService.updateFrameScore(frame, currentRoll);
@@ -149,8 +158,20 @@ public class GameService {
         throw new GameNotFinishedException("Game is not marked as finished for the user id" + userId);
     }
 
+    /**
+     * Converts player information into a record, suitable for the frontend.
+     *
+     * @param id Long userId
+     * @return {@link IntermediateScore}
+     */
     @Transactional
-    public PlayerScore getPlayerScore(Long id) {
+    public IntermediateScore getIntermediateScore(Long id) {
+        Player player = playerService.getPlayer(id);
+        return player.getIntermediateScore();
+    }
+
+    @Transactional
+    public PlayerScore getFinalPlayerScore(Long id) {
         Player player = playerService.getPlayer(id);
         return new PlayerScore(player.getName(), this.getFinalResult(id));
     }

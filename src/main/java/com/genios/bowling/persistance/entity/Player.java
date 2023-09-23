@@ -1,5 +1,6 @@
 package com.genios.bowling.persistance.entity;
 
+import com.genios.bowling.record.response.IntermediateScore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -43,4 +44,9 @@ public class Player {
 
     @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
     private List<Frame> frames;
+
+    public IntermediateScore getIntermediateScore() {
+        return new IntermediateScore(this.id, this.name, this.isFinished, this.totalScore,
+            this.getFrames().stream().map(Frame::convertToRecord).toList());
+    }
 }

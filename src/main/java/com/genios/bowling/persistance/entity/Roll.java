@@ -1,5 +1,6 @@
 package com.genios.bowling.persistance.entity;
 
+import com.genios.bowling.record.response.RollScore;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,4 +54,8 @@ public class Roll {
     @ManyToOne
     @JoinColumn(name = "frame_id", insertable = false, updatable = false)
     private Frame frame;
+
+    public RollScore convertToRecord() {
+        return new RollScore(this.id, this.rollNumber, this.pins, this.getStatus());
+    }
 }

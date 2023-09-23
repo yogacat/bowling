@@ -1,5 +1,6 @@
 package com.genios.bowling.persistance.entity;
 
+import com.genios.bowling.record.response.FrameScore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -57,5 +58,11 @@ public class Frame {
         this.userId = userid;
         this.player = player;
         this.rolls = List.of();
+    }
+
+    public FrameScore convertToRecord() {
+        Integer score = this.isFinalScore ? this.frameScore : null;
+        return new FrameScore(this.id, this.getFrameNumber(), this.isFinalScore, score,
+            this.rolls.stream().map(Roll::convertToRecord).toList());
     }
 }
