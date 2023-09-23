@@ -133,6 +133,12 @@ public class GameService {
             "No last frame received, frame is not the last one or frame calculation is not finished yet");
     }
 
+    /**
+     * Returns the final result of the game if it was finished.
+     *
+     * @param userId Long id of the {@link  Player}
+     * @return int score
+     */
     public int getFinalResult(long userId) {
         Player player = playerService.getPlayer(userId);
         if (player.isFinished()) {
