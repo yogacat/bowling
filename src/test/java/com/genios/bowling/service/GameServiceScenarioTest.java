@@ -31,8 +31,6 @@ class GameServiceScenarioTest {
     @Autowired
     private FrameRepository frameRepository;
     @Autowired
-    private RollRepository rollRepository;
-    @Autowired
     private GameService gameService;
 
     @Test
@@ -95,6 +93,68 @@ class GameServiceScenarioTest {
         assertEquals(167, optional10.get().getFrameScore());
 
         assertEquals(167, gameService.getFinalResult(userId));
+    }
+
+    @Test
+    @Transactional
+    void shouldReturn82() {
+        //given
+        long userId = 1L;
+        Player player = new Player(1L, "Max", 0, false, List.of());
+        playerRepository.save(player);
+
+        //when
+        gameService.saveRollResult(new NextFrameRecord(userId, 1, 1), 1);
+        gameService.saveRollResult(new NextFrameRecord(userId, 1, 2), 1);
+        gameService.saveRollResult(new NextFrameRecord(userId, 2, 1), 10);
+        gameService.saveRollResult(new NextFrameRecord(userId, 3, 1), 10);
+        gameService.saveRollResult(new NextFrameRecord(userId, 4, 1), 10);
+        gameService.saveRollResult(new NextFrameRecord(userId, 5, 1), 1);
+        gameService.saveRollResult(new NextFrameRecord(userId, 5, 2), 1);
+        gameService.saveRollResult(new NextFrameRecord(userId, 6, 1), 0);
+        gameService.saveRollResult(new NextFrameRecord(userId, 6, 2), 3);
+        gameService.saveRollResult(new NextFrameRecord(userId, 7, 1), 3);
+        gameService.saveRollResult(new NextFrameRecord(userId, 7, 2), 6);
+        gameService.saveRollResult(new NextFrameRecord(userId, 8, 1), 0);
+        gameService.saveRollResult(new NextFrameRecord(userId, 8, 2), 1);
+        gameService.saveRollResult(new NextFrameRecord(userId, 9, 1), 0);
+        gameService.saveRollResult(new NextFrameRecord(userId, 9, 2), 1);
+        gameService.saveRollResult(new NextFrameRecord(userId, 10, 1), 0);
+        gameService.saveRollResult(new NextFrameRecord(userId, 10, 2), 1);
+
+        //then
+        Optional<Frame> optional1 = frameRepository.findOneByUserIdAndFrameNumber(userId, 1);
+        assertTrue(optional1.isPresent());
+        assertEquals(2, optional1.get().getFrameScore());
+        Optional<Frame> optional2 = frameRepository.findOneByUserIdAndFrameNumber(userId, 2);
+        assertTrue(optional2.isPresent());
+        assertEquals(32, optional2.get().getFrameScore());
+        Optional<Frame> optional3 = frameRepository.findOneByUserIdAndFrameNumber(userId, 3);
+        assertTrue(optional3.isPresent());
+        assertEquals(53, optional3.get().getFrameScore());
+        Optional<Frame> optional4 = frameRepository.findOneByUserIdAndFrameNumber(userId, 4);
+        assertTrue(optional4.isPresent());
+        assertEquals(65, optional4.get().getFrameScore());
+        Optional<Frame> optional5 = frameRepository.findOneByUserIdAndFrameNumber(userId, 5);
+        assertTrue(optional5.isPresent());
+        assertEquals(67, optional5.get().getFrameScore());
+        Optional<Frame> optional6 = frameRepository.findOneByUserIdAndFrameNumber(userId, 6);
+        assertTrue(optional6.isPresent());
+        assertEquals(70, optional6.get().getFrameScore());
+        Optional<Frame> optional7 = frameRepository.findOneByUserIdAndFrameNumber(userId, 7);
+        assertTrue(optional7.isPresent());
+        assertEquals(79, optional7.get().getFrameScore());
+        Optional<Frame> optional8 = frameRepository.findOneByUserIdAndFrameNumber(userId, 8);
+        assertTrue(optional8.isPresent());
+        assertEquals(80, optional8.get().getFrameScore());
+        Optional<Frame> optional9 = frameRepository.findOneByUserIdAndFrameNumber(userId, 9);
+        assertTrue(optional9.isPresent());
+        assertEquals(81, optional9.get().getFrameScore());
+        Optional<Frame> optional10 = frameRepository.findOneByUserIdAndFrameNumber(userId, 10);
+        assertTrue(optional10.isPresent());
+        assertEquals(82, optional10.get().getFrameScore());
+
+        assertEquals(82, gameService.getFinalResult(userId));
     }
 
     @Test

@@ -131,7 +131,7 @@ public class FrameService {
         frameRepository.save(frame);
 
         this.recalculateCache(frame.getUserId());
-        if (!this.areRollsLeftInFrame(frame) && !frame.isFinalScore()) {
+        if (!this.areRollsLeftInFrame(frame) && !frame.isFinalScore() && !this.isFrameRollsInCache(frame)) {
             this.updateFrameScore(frame.getUserId(), frame.getFrameNumber(), 0);
         }
     }
@@ -254,5 +254,20 @@ public class FrameService {
         frameRepository.save(frame);
 
         cacheLastFinalScore.put(userId, frameScore);
+    }
+
+    private boolean isFrameRollsInCache(Frame frame) {
+        List<CacheRecord> cacheRecords = cache.getOrDefault(frame.getUserId(), new LinkedList<>());
+        if (cacheRecords.isEmpty()) {
+            return false;
+        }
+        for (Roll roll: frame.getRolls()) {
+            Status status = Status.fromString(roll.getStatus());
+            CacheRecord cacheRecord = new CacheRecord(frame.getFrameNumber(), roll.getRollNumber(), roll.getPins(), status.getBonus());
+            if (cacheRecords.contains(cacheRecord)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
