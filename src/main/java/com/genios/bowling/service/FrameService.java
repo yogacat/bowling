@@ -143,31 +143,23 @@ public class FrameService {
     private void recalculateCache(Long userId) {
         LinkedList<CacheRecord> cacheRecords = cache.getOrDefault(userId, new LinkedList<>());
         if (cacheRecords.size() > 1) {
-            if (cacheRecords.peekFirst().bonus() == 2 && cacheRecords.size() >= 3) {
+            if (isStrikeAtTheTop(cacheRecords)) {
                 //strike
                 CacheRecord headRecord = cacheRecords.pollFirst();
                 CacheRecord secondRecord = cacheRecords.peekFirst();
                 CacheRecord thirdRecord = cacheRecords.get(1);
 
-                int bonusPoints = headRecord.frameNumber() != 10 ? secondRecord.pins() + thirdRecord.pins() : 0;
-                this.updateFrameScore(userId, headRecord.frameNumber(), bonusPoints);
-                cache.put(userId, cacheRecords);
-
-                this.cleanupCacheTopAndFinalizeFrames(userId);
-            } else if (cacheRecords.peekFirst().bonus() == 1) {
+                this.calculateBonusPointsAndCleanupCache(userId, cacheRecords, headRecord, secondRecord, thirdRecord);
+            } else if (isSpareAtTheTop(cacheRecords)) {
                 //spare
                 CacheRecord headRecord = cacheRecords.pollFirst();
                 CacheRecord secondRecord = cacheRecords.peekFirst();
 
-                int bonusPoints = secondRecord.pins();
-                this.updateFrameScore(userId, headRecord.frameNumber(), bonusPoints);
-                cache.put(userId, cacheRecords);
-
-                this.cleanupCacheTopAndFinalizeFrames(userId);
+                this.calculateBonusPointsAndCleanupCache(userId, cacheRecords, headRecord, secondRecord, null);
             }
-        } else if (!cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0) {
+        } else if (isNoBonusAtTheTop(cacheRecords)) {
             //remove anything with no bonus from the top
-            while (!cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0) {
+            while (isNoBonusAtTheTop(cacheRecords)) {
                 CacheRecord headRecord = cacheRecords.pollFirst();
                 Optional<Frame> optionalFrame = frameRepository.findOneByUserIdAndFrameNumber(userId,
                     headRecord.frameNumber());
@@ -185,19 +177,58 @@ public class FrameService {
         }
     }
 
+    private void calculateBonusPointsAndCleanupCache(Long userId, LinkedList<CacheRecord> cacheRecords,
+        CacheRecord headRecord,
+        CacheRecord secondRecord, CacheRecord thirdRecord) {
+        int bonusPoints = 0;
+        if (thirdRecord != null) {
+            bonusPoints = calculateBonusPointsForStrike(headRecord, secondRecord, thirdRecord);
+        } else {
+            bonusPoints = secondRecord.pins();
+        }
+        this.updateFrameScore(userId, headRecord.frameNumber(), bonusPoints);
+        cache.put(userId, cacheRecords);
+
+        this.cleanupCacheTopAndFinalizeFrames(userId);
+    }
+
+    private static int calculateBonusPointsForStrike(CacheRecord headRecord, CacheRecord secondRecord,
+        CacheRecord thirdRecord) {
+        return headRecord.frameNumber() != 10 ? secondRecord.pins() + thirdRecord.pins() : 0;
+    }
+
+    private static boolean isNoBonusAtTheTop(LinkedList<CacheRecord> cacheRecords) {
+        return !cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0;
+    }
+
+    private static boolean isSpareAtTheTop(LinkedList<CacheRecord> cacheRecords) {
+        return cacheRecords.peekFirst().bonus() == 1;
+    }
+
+    private static boolean isStrikeAtTheTop(LinkedList<CacheRecord> cacheRecords) {
+        return cacheRecords.peekFirst().bonus() == 2 && cacheRecords.size() >= 3;
+    }
+
     private void cleanupCacheTopAndFinalizeFrames(Long userId) {
         LinkedList<CacheRecord> cacheRecords = cache.getOrDefault(userId, new LinkedList<>());
-        if (cacheRecords.isEmpty() || cacheRecords.peekFirst().bonus() != 0) {
+        boolean isCacheEmptyOrTopIsSpareOrStrike = cacheRecords.isEmpty() || cacheRecords.peekFirst().bonus() != 0;
+        if (isCacheEmptyOrTopIsSpareOrStrike) {
             return;
         }
 
         CacheRecord firstRecord = cacheRecords.pollFirst();
-        if (firstRecord.rollNumber() == 2 && firstRecord.frameNumber() != 10) {
+        boolean isFinalRollNotTheLastFrame = firstRecord.rollNumber() == 2 && firstRecord.frameNumber() != 10;
+        boolean isNotEmptyCacheAndNotTheLastFameAndNoBonus =
+            !cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0
+                && cacheRecords.peekFirst().frameNumber() != 10;
+
+        if (isFinalRollNotTheLastFrame) {
             this.updateFrameScore(userId, firstRecord.frameNumber(), firstRecord.bonus());
-        } else if (!cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0 && cacheRecords.peekFirst().frameNumber() != 10) {
+        } else if (isNotEmptyCacheAndNotTheLastFameAndNoBonus) {
             CacheRecord secondRecord = cacheRecords.pollFirst();
             this.updateFrameScore(userId, secondRecord.frameNumber(), secondRecord.bonus());
         } else if (firstRecord.frameNumber() == 10) {
+            //no bonuses on the last frame, the only bonus is an extra roll after the strike
             while (!cacheRecords.isEmpty()) {
                 cacheRecords.pollFirst();
             }
@@ -220,21 +251,5 @@ public class FrameService {
         frameRepository.save(frame);
 
         cacheLastFinalScore.put(userId, frameScore);
-    }
-
-    private boolean isLastRollInFrame(Frame frame, Roll currentRoll) {
-        if (frame.getFrameNumber() != 10 && currentRoll.getRollNumber() == 2) {
-            return true;
-        } else if (frame.getFrameNumber() != 10 && currentRoll.getPins() == 10) {
-            return true;
-        } else if (frame.getFrameNumber() == 10 && currentRoll.getRollNumber() == 3) {
-            return true;
-        } else if (frame.getFrameNumber() == 10 && currentRoll.getRollNumber() == 2) {
-            Roll firstRoll =
-                frame.getRolls().stream().min(Comparator.comparing(Roll::getRollNumber))
-                    .orElseThrow();
-            return firstRoll.getPins() == 10;
-        }
-        return false;
     }
 }
