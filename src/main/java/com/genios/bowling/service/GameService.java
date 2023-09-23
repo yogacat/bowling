@@ -101,8 +101,10 @@ public class GameService {
      * @param nextFrameRecord {@link NextFrameRecord}info about the user and the frame and roll he currently used
      * @param pins Integer now many pins were knocked off during the roll
      */
+    @Transactional
     public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
-        Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber());
+        Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
+            nextFrameRecord.rollNumber());
         rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
     }
 

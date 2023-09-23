@@ -33,9 +33,9 @@ public class FrameService {
      * @param frameNumber Integer current frame number
      * @return {@link Frame}
      */
-    Frame getOrCreateFrame(Long userId, Integer frameNumber) {
+    Frame getOrCreateFrame(Long userId, Integer frameNumber, Integer nextRollNumber) {
         Frame frame;
-        if (this.isNewFrame(userId, frameNumber)) {
+        if (this.isNewFrame(userId, frameNumber, nextRollNumber)) {
             frame = this.createFrame(userId, frameNumber);
         } else {
             Optional<Frame> optional = frameRepository
@@ -87,7 +87,12 @@ public class FrameService {
         return rolls.stream().max(Comparator.comparing(Roll::getRollNumber));
     }
 
-    private boolean isNewFrame(Long userId, Integer frameNumber) {
+    private boolean isNewFrame(Long userId, Integer frameNumber, Integer nextRollNumber) {
+        Optional<Frame> optionalFrame = frameRepository.findOneByUserIdAndFrameNumber(userId, frameNumber);
+        if (nextRollNumber != 1 && optionalFrame.isEmpty()) {
+            throw new FrameNotFoundException(
+                "Frame with number " + frameNumber + " not found. For the roll that's higher than one it must exist");
+        }
         return frameRepository.findOneByUserIdAndFrameNumber(userId, frameNumber).isEmpty();
     }
 }
