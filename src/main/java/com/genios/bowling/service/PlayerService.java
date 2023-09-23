@@ -5,7 +5,7 @@ import com.genios.bowling.exception.NoFreeLinesException;
 import com.genios.bowling.exception.PlayerNotFoundException;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.repository.PlayerRepository;
-import com.genios.bowling.record.PlayerRecord;
+import com.genios.bowling.record.response.PlayerScore;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -69,17 +69,17 @@ public class PlayerService {
     /**
      * Returns a sorted list of names and the total score. Not limited.
      *
-     * @return collection of the {@link PlayerRecord}
+     * @return collection of the {@link PlayerScore}
      */
-    public List<PlayerRecord> getRating() {
+    public List<PlayerScore> getTopPlayerScores() {
         Player playerExample = new Player();
         playerExample.setFinished(true);
 
         Example<Player> example = Example.of(playerExample);
         List<Player> players = playerRepository.findAll(example);
         return players.stream()
-            .map(p -> new PlayerRecord(p.getName(), p.getTotalScore()))
-            .sorted(Comparator.comparingLong(PlayerRecord::totalScore).reversed())
+            .map(p -> new PlayerScore(p.getName(), p.getTotalScore()))
+            .sorted(Comparator.comparingLong(PlayerScore::totalScore).reversed())
             .toList();
     }
 

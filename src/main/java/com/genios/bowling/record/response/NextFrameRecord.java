@@ -1,4 +1,4 @@
-package com.genios.bowling.record;
+package com.genios.bowling.record.response;
 
 /**
  * Contains data about the next available frame and roll for the user

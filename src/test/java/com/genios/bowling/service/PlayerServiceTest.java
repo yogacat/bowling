@@ -8,7 +8,7 @@ import com.genios.bowling.exception.NoFreeLinesException;
 import com.genios.bowling.exception.PlayerNotFoundException;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.repository.PlayerRepository;
-import com.genios.bowling.record.PlayerRecord;
+import com.genios.bowling.record.response.PlayerScore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,7 +92,7 @@ class PlayerServiceTest {
         playerRepository.saveAll(List.of(player1, player2, player3, player4));
 
         //when
-        List<PlayerRecord> rating = playerService.getRating();
+        List<PlayerScore> rating = playerService.getTopPlayerScores();
 
         //then
         assertEquals(3, rating.size());

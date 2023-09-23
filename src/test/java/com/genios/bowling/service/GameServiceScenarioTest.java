@@ -8,7 +8,7 @@ import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.repository.FrameRepository;
 import com.genios.bowling.persistance.repository.PlayerRepository;
 import com.genios.bowling.persistance.repository.RollRepository;
-import com.genios.bowling.record.NextFrameRecord;
+import com.genios.bowling.record.response.NextFrameRecord;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

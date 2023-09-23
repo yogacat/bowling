@@ -13,7 +13,7 @@ import com.genios.bowling.persistance.entity.Roll;
 import com.genios.bowling.persistance.repository.FrameRepository;
 import com.genios.bowling.persistance.repository.PlayerRepository;
 import com.genios.bowling.persistance.repository.RollRepository;
-import com.genios.bowling.record.NextFrameRecord;
+import com.genios.bowling.record.response.NextFrameRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

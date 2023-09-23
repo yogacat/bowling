@@ -7,7 +7,8 @@ import com.genios.bowling.exception.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
-import com.genios.bowling.record.NextFrameRecord;
+import com.genios.bowling.record.response.NextFrameRecord;
+import com.genios.bowling.record.response.PlayerScore;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,5 +147,11 @@ public class GameService {
         }
 
         throw new GameNotFinishedException("Game is not marked as finished for the user id" + userId);
+    }
+
+    @Transactional
+    public PlayerScore getPlayerScore(Long id) {
+        Player player = playerService.getPlayer(id);
+        return new PlayerScore(player.getName(), this.getFinalResult(id));
     }
 }
