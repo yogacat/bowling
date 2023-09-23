@@ -131,6 +131,9 @@ public class FrameService {
         frameRepository.save(frame);
 
         this.recalculateCache(frame.getUserId());
+        if (!this.areRollsLeftInFrame(frame) && !frame.isFinalScore()) {
+            this.updateFrameScore(frame.getUserId(), frame.getFrameNumber(), 0);
+        }
     }
 
     private void addScoreToCache(Long userId, int frameNumber, int rollNumber, int pins, int bonus) {

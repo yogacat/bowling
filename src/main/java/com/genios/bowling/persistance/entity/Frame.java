@@ -1,6 +1,7 @@
 package com.genios.bowling.persistance.entity;
 
 import com.genios.bowling.record.response.FrameScore;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -49,7 +50,7 @@ public class Frame {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private Player player;
 
-    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<Roll> rolls;
 
     public Frame(long id, int frameNumber, long userid, Player player) {

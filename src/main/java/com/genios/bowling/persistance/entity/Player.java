@@ -1,6 +1,7 @@
 package com.genios.bowling.persistance.entity;
 
 import com.genios.bowling.record.response.IntermediateScore;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -42,7 +43,7 @@ public class Player {
 
     private boolean isFinished;
 
-    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<Frame> frames;
 
     public IntermediateScore getIntermediateScore() {
