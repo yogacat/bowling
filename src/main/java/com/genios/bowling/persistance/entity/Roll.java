@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -18,6 +20,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @Entity
+@Table(name = "roll", uniqueConstraints = @UniqueConstraint(columnNames = {"frame_id", "roll_number"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,6 +35,7 @@ public class Roll {
     @NonNull
     private Long frameId;
 
+    @Column(name = "roll_number")
     @Min(1)
     @Max(3)
     @NonNull

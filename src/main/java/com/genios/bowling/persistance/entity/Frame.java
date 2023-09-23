@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
+@Table(name = "frame", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "frame_number"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,6 +30,7 @@ public class Frame {
 
     @Min(1)
     @Max(10)
+    @Column(name = "frame_number")
     private Integer frameNumber;
 
     @Column(name = "user_id")

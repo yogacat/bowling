@@ -11,7 +11,6 @@ import com.genios.bowling.record.NextFrameRecord;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,11 +49,11 @@ public class GameService {
             return false;
         }
 
-        Optional<Frame> optionalLastFrame = getLastFrame(frames);
+        Optional<Frame> optionalLastFrame = frameService.getLastFrame(frames);
         if (optionalLastFrame.isEmpty() || optionalLastFrame.get().getFrameNumber() != 10) {
             return false;
         }
-        return !areRollsLeftInFrame(optionalLastFrame.get());
+        return !frameService.areRollsLeftInFrame(optionalLastFrame.get());
     }
 
     /**
@@ -73,26 +72,26 @@ public class GameService {
 
         List<Frame> frames = player.getFrames();
         if (frames.isEmpty()) {
-            return new NextFrameRecord(userId, 1, 1, true);
+            return new NextFrameRecord(userId, 1, 1);
         }
 
-        Optional<Frame> optionalLastFrame = getLastFrame(frames);
+        Optional<Frame> optionalLastFrame = frameService.getLastFrame(frames);
         if (optionalLastFrame.isEmpty()) {
             throw new FrameNotFoundException("Last frame not found for the user with id " + userId);
         }
         Frame lastFrame = optionalLastFrame.get();
-        if (areRollsLeftInFrame(lastFrame)) {
-            Optional<Roll> optionalLastRoll = getLastRoll(lastFrame.getRolls());
+        if (frameService.areRollsLeftInFrame(lastFrame)) {
+            Optional<Roll> optionalLastRoll = frameService.getLastRoll(lastFrame.getRolls());
             if (optionalLastRoll.isEmpty()) {
                 throw new RollNotFoundException(
                     "Last roll not found for the user with id " + userId + " within the frame number "
                         + lastFrame.getFrameNumber());
             }
             Roll lastRoll = optionalLastRoll.get();
-            return new NextFrameRecord(userId, lastFrame.getFrameNumber(), lastRoll.getRollNumber() + 1, false);
+            return new NextFrameRecord(userId, lastFrame.getFrameNumber(), lastRoll.getRollNumber() + 1);
         }
 
-        return new NextFrameRecord(userId, lastFrame.getFrameNumber() + 1, 1, true);
+        return new NextFrameRecord(userId, lastFrame.getFrameNumber() + 1, 1);
     }
 
 
@@ -103,40 +102,12 @@ public class GameService {
      * @param pins Integer now many pins were knocked off during the roll
      */
     public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
-        Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
-            nextFrameRecord.isNewFrame());
+        Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber());
         rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
     }
 
     public List<FrameRecord> calculatePlayerScores(Long userId) {
 
         return List.of();
-    }
-
-    private Optional<Frame> getLastFrame(List<Frame> frames) {
-        return frames.stream().max(Comparator.comparing(Frame::getFrameNumber));
-    }
-
-    private boolean areRollsLeftInFrame(Frame frame) {
-        List<Roll> rolls = frame.getRolls().stream()
-            .sorted(Comparator.comparing(Roll::getRollNumber))
-            .toList();
-        if (rolls.isEmpty() || rolls.size() == 1) {
-            return true;
-        }
-
-        if (frame.getFrameNumber() != 10 && rolls.size() == 2) {
-            return false;
-        }
-
-        if (rolls.size() == 3) {
-            return false;
-        }
-
-        return rolls.get(0).getPins() == 10;
-    }
-
-    private Optional<Roll> getLastRoll(List<Roll> rolls) {
-        return rolls.stream().max(Comparator.comparing(Roll::getRollNumber));
     }
 }
