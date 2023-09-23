@@ -118,7 +118,7 @@ public class FrameService {
         entityManager.refresh(frame);
 
         Status status = Status.fromString(currentRoll.getStatus());
-        if (Status.STRIKE.equals(status) || Status.SPARE.equals(status) || !cache.isEmpty()) {
+        if (Status.STRIKE.equals(status) || Status.SPARE.equals(status) || !cache.getOrDefault(frame.getUserId(), new LinkedList<>()).isEmpty()) {
             this.addScoreToCache(frame.getUserId(), frame.getFrameNumber(), currentRoll.getRollNumber(),
                 currentRoll.getPins(),
                 status.getBonus());
