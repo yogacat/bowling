@@ -96,6 +96,9 @@ public class GameService {
                         + lastFrame.getFrameNumber());
             }
             Roll lastRoll = optionalLastRoll.get();
+            if (lastFrame.getFrameNumber() != 10 && lastRoll.getPins() == 10) {
+                return new NextFrameRecord(userId, lastFrame.getFrameNumber() + 1, 1);
+            }
             return new NextFrameRecord(userId, lastFrame.getFrameNumber(), lastRoll.getRollNumber() + 1);
         }
 
