@@ -57,7 +57,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 10, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 7, "/", lastFrame);
         Roll roll2 = new Roll(2L, 1L, 2, 3, "/", lastFrame);
@@ -72,7 +72,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 10, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
         Roll roll2 = new Roll(2L, 1L, 2, 3, "/", lastFrame);
@@ -88,7 +88,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 10, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
         Roll roll2 = new Roll(2L, 1L, 2, 3, "/", lastFrame);
@@ -103,7 +103,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 5, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 5, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
         Roll roll2 = new Roll(2L, 1L, 2, 3, "/", lastFrame);
@@ -123,7 +123,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 5, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 5, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
         rollRepository.saveAll(List.of(roll1));
@@ -142,7 +142,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 10, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
         rollRepository.saveAll(List.of(roll1));
@@ -161,7 +161,7 @@ class GameServiceTest {
         //given
         Player player = new Player(1L, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(1L, 10, 1L, 0, player, List.of());
+        Frame lastFrame = new Frame(1L, 10, 1L, player);
         frameRepository.save(lastFrame);
         Roll roll1 = new Roll(1L, 1L, 1, 10, "X", lastFrame);
         Roll roll2 = new Roll(2L, 1L, 2, 10, "X", lastFrame);
@@ -214,7 +214,7 @@ class GameServiceTest {
         int pins = 3;
         Player player = new Player(userId, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(frameId, frameNumber, userId, 0, player, List.of());
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
         frameRepository.save(lastFrame);
         NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, rollNumber);
 
@@ -272,7 +272,7 @@ class GameServiceTest {
         int pins = 3;
         Player player = new Player(userId, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(frameId, frameNumber, userId, 0, player, List.of());
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
         frameRepository.save(lastFrame);
         Roll firstRoll = new Roll(1L, frameId, 1, 7, null, lastFrame);
         rollRepository.save(firstRoll);
@@ -304,7 +304,7 @@ class GameServiceTest {
         int pins = 0;
         Player player = new Player(userId, "Max", 0, false, List.of());
         playerRepository.save(player);
-        Frame lastFrame = new Frame(frameId, frameNumber, userId, 0, player, List.of());
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
         frameRepository.save(lastFrame);
         NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, rollNumber);
 
@@ -342,5 +342,20 @@ class GameServiceTest {
         //then
         assertEquals("Frame with number 1 not found. For the roll that's higher than one it must exist",
             thrown.getMessage());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRollAlreadyExists() {
+
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFrameInvalid() {
+
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRollInvalid() {
+
     }
 }

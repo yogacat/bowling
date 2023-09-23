@@ -6,8 +6,8 @@ import com.genios.bowling.exception.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
-import com.genios.bowling.record.FrameRecord;
 import com.genios.bowling.record.NextFrameRecord;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +20,17 @@ import java.util.Optional;
 @Service
 public class GameService {
 
+    private final EntityManager entityManager;
+    //todo olo I need a cache for the last up to 3 rolls
+
     private final PlayerService playerService;
     private final FrameService frameService;
     private final RollService rollService;
 
     @Autowired
-    public GameService(PlayerService playerService, FrameService frameService, RollService rollService) {
+    public GameService(EntityManager entityManager, PlayerService playerService, FrameService frameService,
+        RollService rollService) {
+        this.entityManager = entityManager;
         this.rollService = rollService;
         this.playerService = playerService;
         this.frameService = frameService;
@@ -105,11 +110,13 @@ public class GameService {
     public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
         Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
             nextFrameRecord.rollNumber());
-        rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
+        Roll currentRoll = rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
+
+        frameService.updateFrameScore(frame, currentRoll);
     }
 
-    public List<FrameRecord> calculatePlayerScores(Long userId) {
+    public int getFinalResult(long userId) {
 
-        return List.of();
+        return 0;
     }
 }

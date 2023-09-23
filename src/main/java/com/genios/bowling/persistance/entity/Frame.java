@@ -2,6 +2,7 @@ package com.genios.bowling.persistance.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,6 +16,7 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import java.util.List;
 
 @Entity
@@ -36,6 +38,9 @@ public class Frame {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(columnDefinition = "boolean default false")
+    private boolean isFinalScore;
+
     @Min(0)
     @Max(300)
     private Integer frameScore;
@@ -44,6 +49,14 @@ public class Frame {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private Player player;
 
-    @OneToMany(mappedBy = "frame")
+    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER)
     private List<Roll> rolls;
+
+    public Frame(long id, int frameNumber, long userid, Player player) {
+        this.id = id;
+        this.frameNumber = frameNumber;
+        this.userId = userid;
+        this.player = player;
+        this.rolls = List.of();
+    }
 }

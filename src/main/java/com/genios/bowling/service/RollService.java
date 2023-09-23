@@ -31,11 +31,13 @@ public class RollService {
      * @param rollNumber Integer number of this roll
      * @param pins Integer how many pins were knocked off
      */
-    void createRoll(Frame frame, Integer rollNumber, Integer pins) {
+    Roll createRoll(Frame frame, Integer rollNumber, Integer pins) {
         Roll roll = new Roll(frame.getId(), rollNumber, pins);
         roll.setStatus(calculateStatusForRoll(frame, rollNumber, pins).getState());
         roll.setFrame(frame);
         rollRepository.save(roll);
+
+        return roll;
     }
 
     private Status calculateStatusForRoll(Frame frame, Integer rollNumber, Integer pins) {
