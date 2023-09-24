@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const nextFrameInfoDiv = document.getElementById('nextFrameInfo');
   const playerScoreStatsDiv = document.getElementById('playerScoreStats');
+  let refreshInterval; // Store the interval for refreshing statistics
 
   // Function to fetch and display player score statistics
   function displayPlayerScoreStatistics(playerId) {
@@ -50,23 +51,28 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
       // Make the div visible
       playerScoreStatsDiv.style.display = 'block';
-
-      // Fetch and display next frame info
-      fetch(`api/players/${playerId}/frames`, {
-        method: 'GET',
-      })
-      .then(response => response.json())
-      .then(frameInfo => {
-        playerIdSpan.textContent = playerId;
-        frameNumberSpan.textContent = frameInfo.frameNumber;
-        rollNumberSpan.textContent = frameInfo.rollNumber;
-      })
-      .catch(error => {
-        console.error('Error fetching next frame info:', error);
-      });
     })
     .catch(error => {
       console.error('Error fetching player score statistics:', error);
+    });
+  }
+
+  // Function to check if the game is over
+  function checkGameOver(playerId) {
+    fetch(`api/players/${playerId}/game`, {
+      method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+      const isGameOver = data.isGameOver;
+      if (isGameOver) {
+        // Game is over, hide the submit roll form
+        submitRollForm.style.display = 'none';
+        clearInterval(refreshInterval); // Stop refreshing statistics
+      }
+    })
+    .catch(error => {
+      console.error('Error checking game over:', error);
     });
   }
 
@@ -79,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({name: playerName}),
+      body: JSON.stringify({ name: playerName }),
     })
     .then(response => response.json())
     .then(data => {
@@ -100,43 +106,61 @@ document.addEventListener('DOMContentLoaded', function () {
         frameNumberSpan.textContent = frameInfo.frameNumber;
         rollNumberSpan.textContent = frameInfo.rollNumber;
 
-        // Display player score statistics and refresh every 5 seconds (adjust as needed)
+        // Display player score statistics
         displayPlayerScoreStatistics(playerId);
-        setInterval(() => displayPlayerScoreStatistics(playerId), 5000); // Refresh every 5 seconds
+
+        // Start refreshing player score statistics every 5 seconds (adjust as needed)
+        refreshInterval = setInterval(() => displayPlayerScoreStatistics(playerId), 5000);
+
+        // Event Listener for Submit Roll Button
+        submitRollBtn.addEventListener('click', function () {
+          const playerId = playerIdSpan.textContent;
+          const frameNumber = frameNumberSpan.textContent;
+          const rollNumber = rollNumberSpan.textContent;
+          const pins = pinsInput.value;
+
+          // Send an Ajax POST request to submit a roll
+          // Replace with your actual endpoint URL
+          fetch(`api/players/${playerId}/frames`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              frameNumber: parseInt(frameNumber),
+              rollNumber: parseInt(rollNumber),
+              pins: parseInt(pins),
+            }),
+          })
+          .then(response => {
+            if (response.status === 200) {
+              pinsInput.value = '';
+              // Fetch and display next frame info
+              fetch(`api/players/${playerId}/frames`, {
+                method: 'GET',
+              })
+              .then(response => response.json())
+              .then(frameInfo => {
+                frameNumberSpan.textContent = frameInfo.frameNumber;
+                rollNumberSpan.textContent = frameInfo.rollNumber;
+                // Check if the game is over before attempting to fetch the next frame
+                checkGameOver(playerId);
+              })
+              .catch(error => {
+                console.error('Error fetching next frame info:', error);
+              });
+            } else {
+              console.error('Error submitting roll:', response.statusText);
+            }
+          })
+          .catch(error => {
+            console.error('Error submitting roll:', error);
+          });
+        });
       });
     })
     .catch(error => {
       console.error('Error creating player:', error);
-    });
-  });
-
-  // Event Listener for Submit Roll Button
-  submitRollBtn.addEventListener('click', function () {
-    const playerId = playerIdSpan.textContent;
-    const frameNumber = frameNumberSpan.textContent;
-    const rollNumber = rollNumberSpan.textContent;
-    const pins = pinsInput.value;
-
-    fetch(`api/players/${playerId}/frames`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        frameNumber: parseInt(frameNumber),
-        rollNumber: parseInt(rollNumber),
-        pins: parseInt(pins),
-      }),
-    })
-    .then(response => {
-      if (response.status === 200) {
-        pinsInput.value = '';
-      } else {
-        console.error('Error submitting roll:', response.statusText);
-      }
-    })
-    .catch(error => {
-      console.error('Error submitting roll:', error);
     });
   });
 });
