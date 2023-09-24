@@ -31,21 +31,23 @@ public class RollService {
      * @param rollNumber Integer number of this roll
      * @param pins Integer how many pins were knocked off
      */
-    Roll createRoll(Frame frame, Integer rollNumber, Integer pins) {
+    void createRoll(Frame frame, Integer rollNumber, Integer pins) {
         Roll roll = new Roll(frame.getId(), rollNumber, pins);
         roll.setStatus(calculateStatusForRoll(frame, rollNumber, pins).getState());
         roll.setFrame(frame);
         rollRepository.save(roll);
-
-        return roll;
     }
 
     private Status calculateStatusForRoll(Frame frame, Integer rollNumber, Integer pins) {
-        if (pins == 10 && rollNumber == 1) {
+        boolean isStrike = pins == 10 && rollNumber == 1;
+        boolean isMiss = pins == 0;
+        boolean isSecondRollNotLastFrame = rollNumber == 2 && frame.getFrameNumber() != 10;
+
+        if (isStrike) {
             return Status.STRIKE;
-        } else if (pins == 0) {
+        } else if (isMiss) {
             return Status.MISS;
-        } else if (rollNumber == 2) {
+        } else if (isSecondRollNotLastFrame) {
             Roll firstRoll = getFirstRoll(frame.getRolls(), frame.getId());
             if (firstRoll.getPins() + pins == 10) {
                 return Status.SPARE;

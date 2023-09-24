@@ -5,16 +5,11 @@ import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
 import com.genios.bowling.persistance.repository.FrameRepository;
-import com.genios.bowling.record.CacheRecord;
-import com.genios.bowling.record.Status;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -27,9 +22,6 @@ public class FrameService {
 
     private final FrameRepository frameRepository;
     private final PlayerService playerService;
-
-    private final Map<Long, LinkedList<CacheRecord>> cache = new HashMap<>();
-    private final Map<Long, Integer> cacheLastFinalScore = new HashMap<>();
 
     @Autowired
     public FrameService(EntityManager entityManager, FrameRepository frameRepository, PlayerService playerService) {
@@ -110,163 +102,125 @@ public class FrameService {
     }
 
     /**
+     * Updates the score of the frame, does not finalise the frame. Score will contains total pins hit in the frame.
+     *
      * @param frame {@link Frame}
      */
-    public void updateFrameScore(Frame frame, Roll currentRoll) {
+    public void updateFrameScore(Frame frame) {
         entityManager.flush();
         entityManager.refresh(frame);
+        int pins = this.getFrameTotalPins(frame);
+        frame.setFrameScore(pins);
+        frameRepository.save(frame);
+    }
 
-        Status status = Status.fromString(currentRoll.getStatus());
-        if (Status.STRIKE.equals(status) || Status.SPARE.equals(status) || !cache.getOrDefault(frame.getUserId(), new LinkedList<>()).isEmpty()) {
-            this.addScoreToCache(frame.getUserId(), frame.getFrameNumber(), currentRoll.getRollNumber(),
-                currentRoll.getPins(),
-                status.getBonus());
+    public void updateFinishedFrames(Long userId) {
+        Player player = playerService.getPlayer(userId);
+        entityManager.flush();
+        entityManager.refresh(player);
+
+        int lastTotalScore = this.getLastTotal(player.getFrames());
+        List<Frame> openedFrames = getOpenedFrames(player.getFrames());
+
+        for (int i = 0; i < openedFrames.size(); i++) {
+            Frame currentFrame = openedFrames.get(i);
+            if (isRegularFrame(currentFrame)) {
+                lastTotalScore = finalizeFrame(currentFrame, lastTotalScore);
+            } else if (isStrikeFrame(currentFrame) && isNextFrameExist(i + 1, openedFrames)) {
+                Frame nextFrame = openedFrames.get(i + 1);
+                boolean isNextFrameTwoRolls = nextFrame.getRolls().size() == 2;
+                if (isNextFrameTwoRolls) {
+                    int pins = this.getFrameTotalPins(nextFrame);
+                    lastTotalScore = finalizeFrame(currentFrame, lastTotalScore + pins);
+                } else if (isNextFrameExist(i + 2, openedFrames)) {
+                    Frame nextNextFrame = openedFrames.get(i + 2);
+                    if (nextNextFrame.getRolls().size() == 1) {
+                        int pins = this.getFrameTotalPins(nextFrame) + this.getFrameTotalPins(nextNextFrame);
+                        lastTotalScore = finalizeFrame(currentFrame, lastTotalScore + pins);
+                    }
+                }
+            } else if (isSpareFrame(currentFrame) && isNextFrameExist(i + 1, openedFrames)) {
+                Frame nextFrame = openedFrames.get(i + 1);
+                if (nextFrame.getRolls().size() == 1) {
+                    int pins = this.getFrameTotalPins(nextFrame);
+                    lastTotalScore = finalizeFrame(currentFrame, lastTotalScore + pins);
+                }
+            }
         }
-        int pins = frame.getRolls().stream()
+
+        this.updateGameIfFinished(player);
+    }
+
+    private int getFrameTotalPins(Frame nextFrame) {
+        return nextFrame.getRolls().stream()
             .map(Roll::getPins)
             .mapToInt(Integer::intValue)
             .sum();
-        frame.setFrameScore(pins);
-        frameRepository.save(frame);
+    }
 
-        this.recalculateCache(frame.getUserId());
-        if (!this.areRollsLeftInFrame(frame) && !frame.isFinalScore() && !this.isFrameRollsInCache(frame)) {
-            this.updateFrameScore(frame.getUserId(), frame.getFrameNumber(), 0);
+    private int getLastTotal(List<Frame> frames) {
+        return frames.stream()
+            .filter(Frame::isFinalScore)
+            .max(Comparator.comparing(Frame::getFrameNumber))
+            .map(Frame::getFrameScore)
+            .orElse(0);
+    }
+
+    private List<Frame> getOpenedFrames(List<Frame> frames) {
+        return frames.stream()
+            .filter(f -> !f.isFinalScore())
+            .sorted(Comparator.comparing(Frame::getFrameNumber))
+            .toList();
+    }
+
+    private boolean isRegularFrame(Frame currentFrame) {
+        boolean isLastFrame = currentFrame.getFrameNumber() == 10;
+        boolean isTwoRolls = currentFrame.getRolls().size() == 2;
+        boolean isThreeRolls = currentFrame.getRolls().size() == 3;
+        boolean hasNoStrikeOrSpare = currentFrame.getRolls().stream()
+            .filter(r -> !"X".equals(r.getStatus()))
+            .filter(r -> !"/".equals(r.getStatus()))
+            .toList().size() == 2;
+        return hasNoStrikeOrSpare && isTwoRolls || isLastFrame && isThreeRolls;
+    }
+
+    private boolean isStrikeFrame(Frame currentFrame) {
+        return currentFrame.getRolls().stream()
+            .anyMatch(r -> "X".equals(r.getStatus()));
+    }
+
+    private boolean isSpareFrame(Frame currentFrame) {
+        return currentFrame.getRolls().stream()
+            .anyMatch(r -> "/".equals(r.getStatus()));
+    }
+
+    private int finalizeFrame(Frame currentFrame, int lastTotalScore) {
+        int pins = currentFrame.getFrameScore();
+        int finalScore = pins + lastTotalScore;
+        currentFrame.setFrameScore(finalScore);
+        currentFrame.setFinalScore(true);
+        frameRepository.save(currentFrame);
+        return finalScore;
+    }
+
+    private boolean isNextFrameExist(int i, List<Frame> openedFrames) {
+        return openedFrames.size() > i;
+    }
+
+    private void updateGameIfFinished(Player player) {
+        if (isAllFramesFinished(player.getFrames())) {
+            int finalScore = player.getFrames().stream()
+                .filter(f -> f.getFrameNumber() == 10)
+                .map(Frame::getFrameScore)
+                .findFirst()
+                .orElse(0);
+            playerService.setFinalScore(player.getId(), finalScore);
         }
     }
 
-    private void addScoreToCache(Long userId, int frameNumber, int rollNumber, int pins, int bonus) {
-        CacheRecord cacheRecord = new CacheRecord(frameNumber, rollNumber, pins, bonus);
-        LinkedList<CacheRecord> cacheRecords = cache.getOrDefault(userId, new LinkedList<>());
-        cacheRecords.addLast(cacheRecord);
-        cache.put(userId, cacheRecords);
-    }
-
-    private void recalculateCache(Long userId) {
-        LinkedList<CacheRecord> cacheRecords = cache.getOrDefault(userId, new LinkedList<>());
-        if (cacheRecords.size() > 1) {
-            if (isStrikeAtTheTop(cacheRecords)) {
-                //strike
-                CacheRecord headRecord = cacheRecords.pollFirst();
-                CacheRecord secondRecord = cacheRecords.peekFirst();
-                CacheRecord thirdRecord = cacheRecords.get(1);
-
-                this.calculateBonusPointsAndCleanupCache(userId, cacheRecords, headRecord, secondRecord, thirdRecord);
-            } else if (isSpareAtTheTop(cacheRecords)) {
-                //spare
-                CacheRecord headRecord = cacheRecords.pollFirst();
-                CacheRecord secondRecord = cacheRecords.peekFirst();
-
-                this.calculateBonusPointsAndCleanupCache(userId, cacheRecords, headRecord, secondRecord, null);
-            }
-        } else if (isNoBonusAtTheTop(cacheRecords)) {
-            //remove anything with no bonus from the top
-            while (isNoBonusAtTheTop(cacheRecords)) {
-                CacheRecord headRecord = cacheRecords.pollFirst();
-                Optional<Frame> optionalFrame = frameRepository.findOneByUserIdAndFrameNumber(userId,
-                    headRecord.frameNumber());
-                if (optionalFrame.isEmpty()) {
-                    throw new FrameNotFoundException(
-                        "Frame with number " + headRecord.frameNumber() + " not found for the user with id "
-                            + userId);
-                }
-                Frame frame = optionalFrame.get();
-                updateFrameScore(frame.getUserId(), frame.getFrameNumber(), 0);
-            }
-            cache.put(userId, cacheRecords);
-
-            this.cleanupCacheTopAndFinalizeFrames(userId);
-        }
-    }
-
-    private void calculateBonusPointsAndCleanupCache(Long userId, LinkedList<CacheRecord> cacheRecords,
-        CacheRecord headRecord,
-        CacheRecord secondRecord, CacheRecord thirdRecord) {
-        int bonusPoints = 0;
-        if (thirdRecord != null) {
-            bonusPoints = calculateBonusPointsForStrike(headRecord, secondRecord, thirdRecord);
-        } else {
-            bonusPoints = secondRecord.pins();
-        }
-        this.updateFrameScore(userId, headRecord.frameNumber(), bonusPoints);
-        cache.put(userId, cacheRecords);
-
-        this.cleanupCacheTopAndFinalizeFrames(userId);
-    }
-
-    private static int calculateBonusPointsForStrike(CacheRecord headRecord, CacheRecord secondRecord,
-        CacheRecord thirdRecord) {
-        return headRecord.frameNumber() != 10 ? secondRecord.pins() + thirdRecord.pins() : 0;
-    }
-
-    private static boolean isNoBonusAtTheTop(LinkedList<CacheRecord> cacheRecords) {
-        return !cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0;
-    }
-
-    private static boolean isSpareAtTheTop(LinkedList<CacheRecord> cacheRecords) {
-        return cacheRecords.peekFirst().bonus() == 1;
-    }
-
-    private static boolean isStrikeAtTheTop(LinkedList<CacheRecord> cacheRecords) {
-        return cacheRecords.peekFirst().bonus() == 2 && cacheRecords.size() >= 3;
-    }
-
-    private void cleanupCacheTopAndFinalizeFrames(Long userId) {
-        LinkedList<CacheRecord> cacheRecords = cache.getOrDefault(userId, new LinkedList<>());
-        boolean isCacheEmptyOrTopIsSpareOrStrike = cacheRecords.isEmpty() || cacheRecords.peekFirst().bonus() != 0;
-        if (isCacheEmptyOrTopIsSpareOrStrike) {
-            return;
-        }
-
-        CacheRecord firstRecord = cacheRecords.pollFirst();
-        boolean isFinalRollNotTheLastFrame = firstRecord.rollNumber() == 2 && firstRecord.frameNumber() != 10;
-        boolean isNotEmptyCacheAndNotTheLastFameAndNoBonus =
-            !cacheRecords.isEmpty() && cacheRecords.peekFirst().bonus() == 0
-                && cacheRecords.peekFirst().frameNumber() != 10;
-
-        if (isFinalRollNotTheLastFrame) {
-            this.updateFrameScore(userId, firstRecord.frameNumber(), firstRecord.bonus());
-        } else if (isNotEmptyCacheAndNotTheLastFameAndNoBonus) {
-            CacheRecord secondRecord = cacheRecords.pollFirst();
-            this.updateFrameScore(userId, secondRecord.frameNumber(), secondRecord.bonus());
-        } else if (firstRecord.frameNumber() == 10) {
-            //no bonuses on the last frame, the only bonus is an extra roll after the strike
-            while (!cacheRecords.isEmpty()) {
-                cacheRecords.pollFirst();
-            }
-        }
-    }
-
-    private void updateFrameScore(Long userId, int frameNumber, int bonusPoints) {
-        Optional<Frame> optionalFrame = frameRepository.findOneByUserIdAndFrameNumber(userId, frameNumber);
-        if (optionalFrame.isEmpty()) {
-            throw new FrameNotFoundException(
-                "Frame with number " + frameNumber + " not found for the user with id " + userId);
-        }
-
-        int lastFinalScore = cacheLastFinalScore.get(userId) != null ? cacheLastFinalScore.get(userId) : 0;
-
-        Frame frame = optionalFrame.get();
-        int frameScore = lastFinalScore + frame.getFrameScore() + bonusPoints;
-        frame.setFrameScore(frameScore);
-        frame.setFinalScore(true);
-        frameRepository.save(frame);
-
-        cacheLastFinalScore.put(userId, frameScore);
-    }
-
-    private boolean isFrameRollsInCache(Frame frame) {
-        List<CacheRecord> cacheRecords = cache.getOrDefault(frame.getUserId(), new LinkedList<>());
-        if (cacheRecords.isEmpty()) {
-            return false;
-        }
-        for (Roll roll: frame.getRolls()) {
-            Status status = Status.fromString(roll.getStatus());
-            CacheRecord cacheRecord = new CacheRecord(frame.getFrameNumber(), roll.getRollNumber(), roll.getPins(), status.getBonus());
-            if (cacheRecords.contains(cacheRecord)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isAllFramesFinished(List<Frame> frames) {
+        return frames.stream()
+            .filter(Frame::isFinalScore)
+            .count() == 10;
     }
 }
