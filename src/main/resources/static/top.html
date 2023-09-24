@@ -5,20 +5,10 @@
   <title>Top Scores</title>
 </head>
 <body>
-<h1>Top Scores</h1>
-<table>
-  <thead>
-  <tr>
-    <th>Player Name</th>
-    <th>Total Score</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="score : ${topScores}">
-    <td th:text="${score.name}"></td>
-    <td th:text="${score.totalScore}"></td>
-  </tr>
-  </tbody>
-</table>
+<div id="topScores"></div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/top.js"></script>
 </body>
 </html>
