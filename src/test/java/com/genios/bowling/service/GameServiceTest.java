@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.genios.bowling.exception.FrameNotFoundException;
+import com.genios.bowling.exception.InvalidRollException;
 import com.genios.bowling.exception.RollAlreadyExistsException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
@@ -404,7 +405,7 @@ class GameServiceTest {
         long userId = 1L;
         long frameId = 1L;
         int frameNumber = 1;
-        int rollNumber = 1;
+        int rollNumber = 4;
         int pins = 3;
         Player player = new Player(userId, "Max", 0, false, List.of());
         playerRepository.save(player);
@@ -412,7 +413,7 @@ class GameServiceTest {
         frameRepository.save(lastFrame);
         Roll firstRoll = new Roll(1L, frameId, 1, 7, null, lastFrame);
         rollRepository.save(firstRoll);
-        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, 4);
+        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, rollNumber);
 
         //when
         ConstraintViolationException thrown = Assertions.assertThrows(ConstraintViolationException.class,
@@ -426,12 +427,50 @@ class GameServiceTest {
 
     @Test
     void shouldReturnExceptionWhenNumberOfPinsIsHigherThanAvailable() {
+        //given
+        long userId = 1L;
+        long frameId = 1L;
+        int frameNumber = 1;
+        int rollNumber = 2;
+        int pins = 4;
+        Player player = new Player(userId, "Max", 0, false, List.of());
+        playerRepository.save(player);
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
+        frameRepository.save(lastFrame);
+        Roll firstRoll = new Roll(1L, frameId, 1, 7, null, lastFrame);
+        rollRepository.save(firstRoll);
+        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, rollNumber);
 
+        //when
+        InvalidRollException thrown = Assertions.assertThrows(InvalidRollException.class,
+            () -> gameService.saveRollResult(nextFrameRecord, pins));
+
+        //then
+        assertEquals("Received the number of pins higher than the number of available pins on a frame", thrown.getMessage());
     }
 
     @Test
     void shouldSaveRollWhenLastFramePreviousStrikes() {
+        //given
+        long userId = 1L;
+        long frameId = 1L;
+        int frameNumber = 10;
+        int rollNumber = 3;
+        int pins = 3;
+        Player player = new Player(userId, "Max", 0, false, List.of());
+        playerRepository.save(player);
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
+        frameRepository.save(lastFrame);
+        Roll firstRoll = new Roll(1L, frameId, 1, 10, "X", lastFrame);
+        rollRepository.save(firstRoll);
+        Roll secondRoll = new Roll(2L, frameId, 2, 7, null, lastFrame);
+        rollRepository.save(secondRoll);
+        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, rollNumber);
 
+        //when
+        gameService.saveRollResult(nextFrameRecord, pins);
+
+        //then
+        assertTrue(rollRepository.findOneByFrameIdAndRollNumber(frameId, rollNumber).isPresent());
     }
-
 }
