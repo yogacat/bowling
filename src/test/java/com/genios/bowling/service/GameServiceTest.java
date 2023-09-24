@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.genios.bowling.exception.FrameNotFoundException;
+import com.genios.bowling.exception.RollAlreadyExistsException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
@@ -346,7 +347,26 @@ class GameServiceTest {
 
     @Test
     void shouldThrowExceptionWhenRollAlreadyExists() {
+        //given
+        long userId = 1L;
+        long frameId = 1L;
+        int frameNumber = 1;
+        int rollNumber = 1;
+        int pins = 3;
+        Player player = new Player(userId, "Max", 0, false, List.of());
+        playerRepository.save(player);
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
+        frameRepository.save(lastFrame);
+        Roll firstRoll = new Roll(1L, frameId, 1, 7, null, lastFrame);
+        rollRepository.save(firstRoll);
+        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, rollNumber);
 
+        //when
+        RollAlreadyExistsException thrown = Assertions.assertThrows(RollAlreadyExistsException.class,
+            () -> gameService.saveRollResult(nextFrameRecord, pins));
+
+        //then
+        assertEquals("For the frame 1 roll 1 was already saved.", thrown.getMessage());
     }
 
     @Test
@@ -358,4 +378,15 @@ class GameServiceTest {
     void shouldThrowExceptionWhenRollInvalid() {
 
     }
+
+    @Test
+    void shouldReturnExceptionWhenNumberOfPinsIsHigherThanAvailable() {
+
+    }
+
+    @Test
+    void shouldSaveRollWhenLastFramePreviousStrikes() {
+
+    }
+
 }

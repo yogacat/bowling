@@ -3,6 +3,7 @@ package com.genios.bowling.service;
 import com.genios.bowling.exception.FrameNotFoundException;
 import com.genios.bowling.exception.GameAlreadyFinishedException;
 import com.genios.bowling.exception.GameNotFinishedException;
+import com.genios.bowling.exception.InvalidRollException;
 import com.genios.bowling.exception.RollAlreadyExistsException;
 import com.genios.bowling.exception.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
@@ -114,6 +115,7 @@ public class GameService {
      */
     @Transactional
     public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
+        //todo olo validate the number of pins
         Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
             nextFrameRecord.rollNumber());
         Optional<Roll> rollOptional = rollService.getRoll(frame.getId(), nextFrameRecord.rollNumber());
@@ -123,6 +125,14 @@ public class GameService {
                     + " was already saved.");
         }
 
+        int availablePins = 10 - frame.getRolls().stream()
+            .filter(r -> !"X".equals(r.getStatus()))
+            .map(Roll::getPins)
+            .mapToInt(Integer::intValue)
+            .sum();
+        if (availablePins < pins) {
+            throw new InvalidRollException("Received the number of pins higher than the number of available pins on a frame");
+        }
         Roll currentRoll = rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
 
         frameService.updateFrameScore(frame, currentRoll);
