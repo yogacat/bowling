@@ -2,7 +2,6 @@ package com.genios.bowling.persistance.entity;
 
 import com.genios.bowling.record.response.FrameScore;
 import com.genios.bowling.record.response.IntermediateScore;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
