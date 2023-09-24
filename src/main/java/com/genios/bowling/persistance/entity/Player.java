@@ -1,5 +1,6 @@
 package com.genios.bowling.persistance.entity;
 
+import com.genios.bowling.record.response.FrameScore;
 import com.genios.bowling.record.response.IntermediateScore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -17,6 +18,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -43,11 +45,15 @@ public class Player {
 
     private boolean isFinished;
 
-    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    //todo olo cascade delete
+    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Frame> frames;
 
     public IntermediateScore getIntermediateScore() {
         return new IntermediateScore(this.id, this.name, this.isFinished, this.totalScore,
-            this.getFrames().stream().map(Frame::convertToRecord).toList());
+            this.getFrames().stream()
+                .map(Frame::convertToRecord)
+                .sorted(Comparator.comparing(FrameScore::frameNumber))
+                .toList());
     }
 }

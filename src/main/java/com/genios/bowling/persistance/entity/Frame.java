@@ -1,6 +1,7 @@
 package com.genios.bowling.persistance.entity;
 
 import com.genios.bowling.record.response.FrameScore;
+import com.genios.bowling.record.response.RollScore;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +19,7 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity
@@ -50,7 +52,7 @@ public class Frame {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private Player player;
 
-    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Roll> rolls;
 
     public Frame(long id, int frameNumber, long userid, Player player) {
@@ -64,6 +66,9 @@ public class Frame {
     public FrameScore convertToRecord() {
         Integer score = this.isFinalScore ? this.frameScore : null;
         return new FrameScore(this.id, this.getFrameNumber(), this.isFinalScore, score,
-            this.rolls.stream().map(Roll::convertToRecord).toList());
+            this.rolls.stream()
+                .map(Roll::convertToRecord)
+                .sorted(Comparator.comparing(RollScore::rollNumber))
+                .toList());
     }
 }

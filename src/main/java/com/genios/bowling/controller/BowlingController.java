@@ -57,6 +57,7 @@ public class BowlingController {
     @PostMapping(value = "/players/{id}/frames", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> saveRoll(@PathVariable @NotBlank Long id, @RequestBody @Valid @NotNull Roll roll) {
+        //todo validation that no more than available pins are used
         NextFrameRecord frameRecord = new NextFrameRecord(id, roll.frameNumber(), roll.rollNumber());
         int pins = roll.pins();
         gameService.saveRollResult(frameRecord, pins);

@@ -173,9 +173,9 @@ public class GameService {
         return player.getIntermediateScore();
     }
 
-    @Transactional
+    /*@Transactional
     public PlayerScore getFinalPlayerScore(Long id) {
         Player player = playerService.getPlayer(id);
         return new PlayerScore(player.getName(), this.getFinalResult(id));
-    }
+    }*/
 }
