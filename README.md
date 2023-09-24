@@ -42,6 +42,25 @@ already saved.
 
 Sessions, security, optimized frontend to avoid too many calls to the API.
 
+## Algorithm
+
+I save each roll and update the frame score with the pins, that were knocked off in all the rolls of the frame. After
+this there might be some frames, that are "finalized".
+
+There are three kinds of frames:
+
+- regular frame
+- one that has a strike
+- one that has a spare
+
+After a while a list of these unfinished frames will grow and some of them can be finalized. I count the last finished
+score while doing this. If the frame was finalized, I set its value to the last finished score.
+
+Regular frame has no dependencies and can be finalized immediately. Frames with strike and spare wait for the next
+two/one rolls of the next frame to be finalized.
+
+After all the frames are finalised, the game is finished and the score is updated.
+
 ## Next steps
 
 As I ran out of free time I can spend on this task there are things I did not implement.
