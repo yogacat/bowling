@@ -15,6 +15,8 @@ import com.genios.bowling.persistance.repository.FrameRepository;
 import com.genios.bowling.persistance.repository.PlayerRepository;
 import com.genios.bowling.persistance.repository.RollRepository;
 import com.genios.bowling.record.response.NextFrameRecord;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -371,12 +373,55 @@ class GameServiceTest {
 
     @Test
     void shouldThrowExceptionWhenFrameInvalid() {
+        //given
+        long userId = 1L;
+        long frameId = 1L;
+        int frameNumber = 1;
+        int rollNumber = 1;
+        int pins = 3;
+        Player player = new Player(userId, "Max", 0, false, List.of());
+        playerRepository.save(player);
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
+        frameRepository.save(lastFrame);
+        Roll firstRoll = new Roll(1L, frameId, 1, 7, null, lastFrame);
+        rollRepository.save(firstRoll);
+        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, 11, rollNumber);
 
+        //when
+        ConstraintViolationException thrown = Assertions.assertThrows(ConstraintViolationException.class,
+            () -> gameService.saveRollResult(nextFrameRecord, pins));
+
+        //then
+        List<String> violations = thrown.getConstraintViolations().stream().map(ConstraintViolation::getMessage)
+            .toList();
+        //I know that assert that is better here, so I can actually see what are the messages and what does not match, but I am tired
+        assertTrue(violations.contains("must be less than or equal to 10"));
     }
 
     @Test
     void shouldThrowExceptionWhenRollInvalid() {
+        //given
+        long userId = 1L;
+        long frameId = 1L;
+        int frameNumber = 1;
+        int rollNumber = 1;
+        int pins = 3;
+        Player player = new Player(userId, "Max", 0, false, List.of());
+        playerRepository.save(player);
+        Frame lastFrame = new Frame(frameId, frameNumber, userId, player);
+        frameRepository.save(lastFrame);
+        Roll firstRoll = new Roll(1L, frameId, 1, 7, null, lastFrame);
+        rollRepository.save(firstRoll);
+        NextFrameRecord nextFrameRecord = new NextFrameRecord(userId, frameNumber, 4);
 
+        //when
+        ConstraintViolationException thrown = Assertions.assertThrows(ConstraintViolationException.class,
+            () -> gameService.saveRollResult(nextFrameRecord, pins));
+
+        //then
+        List<String> violations = thrown.getConstraintViolations().stream().map(ConstraintViolation::getMessage)
+            .toList();
+        assertTrue(violations.contains("must be less than or equal to 3"));
     }
 
     @Test
