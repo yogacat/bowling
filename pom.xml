@@ -49,14 +49,6 @@
       <artifactId>postgresql</artifactId>
     </dependency>
 
-
-    <!-- frontend -->
-    <!--dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-thymeleaf</artifactId>
-</dependency-->
-
-
     <!-- testing -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

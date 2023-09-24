@@ -22,33 +22,32 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(response => response.json())
     .then(statistics => {
       playerScoreStatsDiv.innerHTML = `
-          <h2>Player Score Statistics</h2>
-          <p>Total Score: ${statistics.finalScore}</p>
-          <p>Frames:</p>
-        <ul>
+      <h2>Player Score Statistics</h2>
+      <table border="1">
+        <tr>
+          ${statistics.frames.map(frame => `<td>Frame ${frame.frameNumber}</td>`).join('')}
+        </tr>
+        <tr>
           ${statistics.frames.map(frame => {
-        let frameContent = `Frame ${frame.frameNumber}: `;
-        // Check if it's the final score frame
-        if (frame.isFinalScore) {
-          frameContent += `${frame.score}`;
-        }
-
+        let frameContent = '';
         if (frame.rolls && frame.rolls.length > 0) {
-          frameContent += '<ul>';
-          frame.rolls.forEach(roll => {
+          frameContent += frame.rolls.map(roll => {
             if (roll.status) {
-              frameContent += `<li>${roll.status}</li>`;
+              return `${roll.status} `;
             } else if (roll.pins !== undefined && roll.pins !== null) {
-              frameContent += `<li>${roll.pins}</li>`;
+              return `${roll.pins} `;
             }
-          });
-          frameContent += '</ul>';
+            return ''; // Empty space if neither status nor pins
+          }).join('');
         }
-
-        return `<li>${frameContent}</li>`;
+        return `<td>${frameContent}</td>`;
       }).join('')}
-        </ul>
-        `;
+        </tr>
+        <tr>
+          ${statistics.frames.map(frame => `<td>${frame.isFinalScore ? frame.score : ''}</td>`).join('')}
+        </tr>
+      </table>
+      `;
       // Make the div visible
       playerScoreStatsDiv.style.display = 'block';
     })
@@ -95,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const playerId = data.id;
 
       // Display player ID and get next frame info
-      nextFrameInfoDiv.textContent = `Player ID: ${playerId}`;
+      nextFrameInfoDiv.textContent = `Player: ${playerName}`;
       createPlayerForm.style.display = 'none';
       submitRollForm.style.display = 'block';
 
