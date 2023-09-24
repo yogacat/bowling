@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .then(statistics => {
       playerScoreStatsDiv.innerHTML = `
           <h2>Player Score Statistics</h2>
-          <p>Total Score: ${statistics.totalScore}</p>
+          <p>Total Score: ${statistics.finalScore}</p>
           <p>Frames:</p>
         <ul>
           ${statistics.frames.map(frame => {
