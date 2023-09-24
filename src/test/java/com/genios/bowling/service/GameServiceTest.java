@@ -446,7 +446,8 @@ class GameServiceTest {
             () -> gameService.saveRollResult(nextFrameRecord, pins));
 
         //then
-        assertEquals("Received the number of pins higher than the number of available pins on a frame", thrown.getMessage());
+        assertEquals("Received the number of pins higher than the number of available pins on a frame",
+            thrown.getMessage());
     }
 
     @Test

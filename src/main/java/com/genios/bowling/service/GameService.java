@@ -11,7 +11,6 @@ import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
 import com.genios.bowling.record.response.IntermediateScore;
 import com.genios.bowling.record.response.NextFrameRecord;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,16 +23,13 @@ import java.util.Optional;
 @Service
 public class GameService {
 
-    private final EntityManager entityManager;
-
     private final PlayerService playerService;
     private final FrameService frameService;
     private final RollService rollService;
 
     @Autowired
-    public GameService(EntityManager entityManager, PlayerService playerService, FrameService frameService,
+    public GameService(PlayerService playerService, FrameService frameService,
         RollService rollService) {
-        this.entityManager = entityManager;
         this.rollService = rollService;
         this.playerService = playerService;
         this.frameService = frameService;
@@ -133,28 +129,12 @@ public class GameService {
             throw new InvalidRollException(
                 "Received the number of pins higher than the number of available pins on a frame");
         }
-        Roll currentRoll = rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
+        rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
+        frameService.updateFrameScore(frame);
 
-        frameService.updateFrameScore(frame, currentRoll);
-
-        if (!frameService.areRollsLeftInFrame(frame) && frame.getFrameNumber() == 10) {
-            Player player = playerService.getPlayer(frame.getUserId());
-            entityManager.flush();
-            entityManager.refresh(player);
-            playerService.saveFinalScore(player, getLastFrameScore(player.getFrames()));
-        }
+        frameService.updateFinishedFrames(frame.getUserId());
     }
 
-    private int getLastFrameScore(List<Frame> frames) {
-        Optional<Frame> optionalFrame = frameService.getLastFrame(frames);
-
-        if (optionalFrame.isPresent() && optionalFrame.get().getFrameNumber() == 10 && optionalFrame.get()
-            .isFinalScore()) {
-            return optionalFrame.get().getFrameScore();
-        }
-        throw new GameNotFinishedException(
-            "No last frame received, frame is not the last one or frame calculation is not finished yet");
-    }
 
     /**
      * Returns the final result of the game if it was finished.
