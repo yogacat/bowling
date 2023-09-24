@@ -28,7 +28,6 @@ public class FrameService {
     private final FrameRepository frameRepository;
     private final PlayerService playerService;
 
-    //todo recalculate on service restart
     private final Map<Long, LinkedList<CacheRecord>> cache = new HashMap<>();
     private final Map<Long, Integer> cacheLastFinalScore = new HashMap<>();
 

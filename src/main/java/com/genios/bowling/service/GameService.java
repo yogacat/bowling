@@ -11,7 +11,6 @@ import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;
 import com.genios.bowling.record.response.IntermediateScore;
 import com.genios.bowling.record.response.NextFrameRecord;
-import com.genios.bowling.record.response.PlayerScore;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,7 +114,6 @@ public class GameService {
      */
     @Transactional
     public void saveRollResult(NextFrameRecord nextFrameRecord, Integer pins) {
-        //todo olo validate the number of pins
         Frame frame = frameService.getOrCreateFrame(nextFrameRecord.userId(), nextFrameRecord.frameNumber(),
             nextFrameRecord.rollNumber());
         Optional<Roll> rollOptional = rollService.getRoll(frame.getId(), nextFrameRecord.rollNumber());
@@ -127,11 +125,13 @@ public class GameService {
 
         int availablePins = 10 - frame.getRolls().stream()
             .filter(r -> !"X".equals(r.getStatus()))
+            .filter(r -> pins != 10)
             .map(Roll::getPins)
             .mapToInt(Integer::intValue)
             .sum();
         if (availablePins < pins) {
-            throw new InvalidRollException("Received the number of pins higher than the number of available pins on a frame");
+            throw new InvalidRollException(
+                "Received the number of pins higher than the number of available pins on a frame");
         }
         Roll currentRoll = rollService.createRoll(frame, nextFrameRecord.rollNumber(), pins);
 
@@ -182,10 +182,4 @@ public class GameService {
         Player player = playerService.getPlayer(id);
         return player.getIntermediateScore();
     }
-
-    /*@Transactional
-    public PlayerScore getFinalPlayerScore(Long id) {
-        Player player = playerService.getPlayer(id);
-        return new PlayerScore(player.getName(), this.getFinalResult(id));
-    }*/
 }
