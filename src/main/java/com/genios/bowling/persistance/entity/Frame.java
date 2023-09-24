@@ -52,7 +52,7 @@ public class Frame {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private Player player;
 
-    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "frame", fetch = FetchType.EAGER)
     private List<Roll> rolls;
 
     public Frame(long id, int frameNumber, long userid, Player player) {

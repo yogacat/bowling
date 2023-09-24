@@ -45,8 +45,7 @@ public class Player {
 
     private boolean isFinished;
 
-    //todo olo cascade delete
-    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "player", fetch = FetchType.EAGER)
     private List<Frame> frames;
 
     public IntermediateScore getIntermediateScore() {
