@@ -30,7 +30,6 @@ import java.util.List;
 @RequestMapping("/api")
 @Slf4j
 public class BowlingController {
-    //todo olo logging
 
     private final PlayerService playerService;
     private final GameService gameService;
@@ -44,6 +43,7 @@ public class BowlingController {
     @PostMapping(value = "/players", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<PlayerCreated> create(@RequestBody @Valid @NotNull Player player) {
+        log.info("Received a request to create a player: {}", player.name());
         Long userId = playerService.createPlayer(player.name());
         PlayerCreated result = new PlayerCreated(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -52,6 +52,7 @@ public class BowlingController {
     @GetMapping(value = "/players/{id}/frames", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<NextFrameRecord> getNextFrame(@PathVariable @NotBlank Long id) {
+        log.info("Received a request to get the next frame for the player with id: {}", id);
         NextFrameRecord nextFrame = gameService.getNextFrame(id);
         return ResponseEntity.status(HttpStatus.OK).body(nextFrame);
     }
@@ -59,6 +60,7 @@ public class BowlingController {
     @PostMapping(value = "/players/{id}/frames", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> saveRoll(@PathVariable @NotBlank Long id, @RequestBody @Valid @NotNull Roll roll) {
+        log.info("Received a request save the roll for the player with id: {}", id);
         NextFrameRecord frameRecord = new NextFrameRecord(id, roll.frameNumber(), roll.rollNumber());
         int pins = roll.pins();
         gameService.saveRollResult(frameRecord, pins);
@@ -66,19 +68,22 @@ public class BowlingController {
     }
 
     @GetMapping(value = "/players/{id}/game", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> isGameOver(@PathVariable @NotBlank Long id) {
+    public ResponseEntity<GameOver> isGameOver(@PathVariable @NotBlank Long id) {
+        log.info("Received a request check if the game is over for the player with id: {}", id);
         boolean isGameOver = gameService.isGameOver(id);
         return ResponseEntity.status(HttpStatus.OK).body(new GameOver(isGameOver));
     }
 
     @GetMapping(value = "/players/{id}/scores", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<IntermediateScore> getPlayerScore(@PathVariable @NotBlank Long id) {
+        log.info("Received a request get the scores for the player with id: {}", id);
         IntermediateScore playerScore = gameService.getIntermediateScore(id);
         return ResponseEntity.status(HttpStatus.OK).body(playerScore);
     }
 
     @GetMapping(value = "/scores", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PlayerScore>> getTopScores() {
+        log.info("Received a request get the top scores for all players");
         List<PlayerScore> scores = playerService.getTopPlayerScores();
         return ResponseEntity.status(HttpStatus.OK).body(scores);
     }

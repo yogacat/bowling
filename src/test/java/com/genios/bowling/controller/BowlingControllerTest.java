@@ -3,9 +3,13 @@ package com.genios.bowling.controller;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.genios.bowling.exception.NoFreeLinesException;
+import com.genios.bowling.exception.player.PlayerNotFoundException;
 import com.genios.bowling.persistance.repository.PlayerRepository;
 import com.genios.bowling.record.request.Player;
+import com.genios.bowling.record.response.GameOver;
+import com.genios.bowling.record.response.NextFrameRecord;
 import com.genios.bowling.record.response.PlayerCreated;
+import com.genios.bowling.record.response.PlayerScore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,5 +65,111 @@ class BowlingControllerTest {
         assertEquals("No free lines are left, please try again later", thrown.getMessage());
     }
 
-    //todo olo
+    @Test
+    void shouldGetTheNextFrameForExistingPlayer() {
+        //given
+        com.genios.bowling.persistance.entity.Player player0 =
+            new com.genios.bowling.persistance.entity.Player(1L, "Max", 0, false, List.of());
+        playerRepository.save(player0);
+
+        //when
+        ResponseEntity<NextFrameRecord> entity = controller.getNextFrame(1L);
+
+        //then
+        assertNotNull(entity);
+        assertEquals(HttpStatus.OK, entity.getStatusCode());
+        assertNotNull(entity.getBody());
+        assertEquals(1, entity.getBody().frameNumber());
+        assertEquals(1, entity.getBody().rollNumber());
+    }
+
+    @Test
+    void shouldThrowAnExceptionPlayerNotFound() {
+        //when
+        PlayerNotFoundException thrown = Assertions.assertThrows(PlayerNotFoundException.class,
+            () -> controller.getNextFrame(1L));
+
+        //then
+        assertEquals("No player with the id 1 was found", thrown.getMessage());
+    }
+
+    @Test
+    void shouldReturnTrueWhenGameIsOver() {
+        //given
+        com.genios.bowling.persistance.entity.Player player0 =
+            new com.genios.bowling.persistance.entity.Player(1L, "Max", 150, true, List.of());
+        playerRepository.save(player0);
+
+        //when
+        ResponseEntity<GameOver> entity = controller.isGameOver(1L);
+
+        //then
+        assertNotNull(entity);
+        assertEquals(HttpStatus.OK, entity.getStatusCode());
+        assertNotNull(entity.getBody());
+        assertTrue(entity.getBody().isGameOver());
+    }
+
+    @Test
+    void shouldReturnFalseWhenGameIsOngoing() {
+        //given
+        com.genios.bowling.persistance.entity.Player player0 =
+            new com.genios.bowling.persistance.entity.Player(1L, "Max", 0, false, List.of());
+        playerRepository.save(player0);
+
+        //when
+        ResponseEntity<GameOver> entity = controller.isGameOver(1L);
+
+        //then
+        assertNotNull(entity);
+        assertEquals(HttpStatus.OK, entity.getStatusCode());
+        assertNotNull(entity.getBody());
+        assertFalse(entity.getBody().isGameOver());
+    }
+
+    @Test
+    void shouldThrowAnExceptionPlayerNotFoundInGameOver() {
+        //when
+        PlayerNotFoundException thrown = Assertions.assertThrows(PlayerNotFoundException.class,
+            () -> controller.isGameOver(1L));
+
+        //then
+        assertEquals("No player with the id 1 was found", thrown.getMessage());
+    }
+
+    @Test
+    void shouldReturnTopScoresWhenExist() {
+        //given
+        playerRepository.save(new com.genios.bowling.persistance.entity.Player(1L, "Max", 130, true, List.of()));
+        playerRepository.save(new com.genios.bowling.persistance.entity.Player(2L, "Mary", 168, true, List.of()));
+
+        //when
+        ResponseEntity<List<PlayerScore>> entity = controller.getTopScores();
+
+        //then
+        assertNotNull(entity);
+        assertEquals(HttpStatus.OK, entity.getStatusCode());
+        assertNotNull(entity.getBody());
+        List<PlayerScore> scores = entity.getBody();
+        assertEquals(new PlayerScore("Mary", 168), scores.get(0));
+        assertEquals(new PlayerScore("Max", 130), scores.get(1));
+    }
+
+    @Test
+    void shouldNotReturnTopScoresWhenGameIsNotOver() {
+        //given
+        playerRepository.save(new com.genios.bowling.persistance.entity.Player(1L, "Max", 0, false, List.of()));
+        playerRepository.save(new com.genios.bowling.persistance.entity.Player(2L, "Mary", 0, false, List.of()));
+
+        //when
+        ResponseEntity<List<PlayerScore>> entity = controller.getTopScores();
+
+        //then
+        assertNotNull(entity);
+        assertEquals(HttpStatus.OK, entity.getStatusCode());
+        assertNotNull(entity.getBody());
+        assertEquals(List.of(), entity.getBody());
+    }
+    
+    //there should be more tests for saveRoll and getIntermediateScore
 }
