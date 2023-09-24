@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Display player score statistics
         displayPlayerScoreStatistics(playerId);
 
-        // Start refreshing player score statistics every 5 seconds (adjust as needed)
+        // Start refreshing player score statistics every 5 seconds
         refreshInterval = setInterval(() => displayPlayerScoreStatistics(playerId), 5000);
 
         // Event Listener for Submit Roll Button
@@ -123,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function () {
           const pins = pinsInput.value;
 
           // Send an Ajax POST request to submit a roll
-          // Replace with your actual endpoint URL
           fetch(`api/players/${playerId}/frames`, {
             method: 'POST',
             headers: {
