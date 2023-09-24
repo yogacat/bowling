@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Game is over, hide the submit roll form
         submitRollForm.style.display = 'none';
         clearInterval(refreshInterval); // Stop refreshing statistics
+
+        // Fetch and display final statistics
+        displayPlayerScoreStatistics(playerId);
       }
     })
     .catch(error => {
