@@ -1,4 +1,4 @@
-package com.genios.bowling.exception;
+package com.genios.bowling.exception.frame;
 
 /**
  * Indicates that requested frame does not exist.

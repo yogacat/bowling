@@ -1,6 +1,7 @@
 package com.genios.bowling.controller;
 
-import com.genios.bowling.exception.RollAlreadyExistsException;
+import com.genios.bowling.exception.NoFreeLinesException;
+import com.genios.bowling.exception.roll.RollAlreadyExistsException;
 import com.genios.bowling.record.response.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,11 @@ public class ExceptionHandlingController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessage> handleValidationException(MethodArgumentNotValidException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorMessage(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NoFreeLinesException.class)
+    public ResponseEntity<ErrorMessage> handleNoFreeLinesException(NoFreeLinesException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorMessage(ex.getMessage()));
     }
 
     @ExceptionHandler(RollAlreadyExistsException.class)

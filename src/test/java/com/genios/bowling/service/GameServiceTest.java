@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.genios.bowling.exception.FrameNotFoundException;
-import com.genios.bowling.exception.InvalidRollException;
-import com.genios.bowling.exception.RollAlreadyExistsException;
+import com.genios.bowling.exception.frame.FrameNotFoundException;
+import com.genios.bowling.exception.roll.InvalidRollException;
+import com.genios.bowling.exception.roll.RollAlreadyExistsException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;

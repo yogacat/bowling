@@ -1,6 +1,6 @@
 package com.genios.bowling.service;
 
-import com.genios.bowling.exception.RollNotFoundException;
+import com.genios.bowling.exception.roll.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Roll;
 import com.genios.bowling.persistance.repository.RollRepository;

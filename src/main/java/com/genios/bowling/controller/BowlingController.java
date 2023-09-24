@@ -1,17 +1,18 @@
 package com.genios.bowling.controller;
 
-import com.genios.bowling.record.response.IntermediateScore;
-import com.genios.bowling.record.response.PlayerScore;
+import com.genios.bowling.record.request.Player;
 import com.genios.bowling.record.request.Roll;
 import com.genios.bowling.record.response.GameOver;
+import com.genios.bowling.record.response.IntermediateScore;
 import com.genios.bowling.record.response.NextFrameRecord;
-import com.genios.bowling.record.request.Player;
 import com.genios.bowling.record.response.PlayerCreated;
+import com.genios.bowling.record.response.PlayerScore;
 import com.genios.bowling.service.GameService;
 import com.genios.bowling.service.PlayerService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class BowlingController {
     //todo olo logging
 

@@ -1,6 +1,6 @@
 package com.genios.bowling.service;
 
-import com.genios.bowling.exception.FrameNotFoundException;
+import com.genios.bowling.exception.frame.FrameNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;

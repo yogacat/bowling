@@ -1,4 +1,4 @@
-package com.genios.bowling.exception;
+package com.genios.bowling.exception.roll;
 
 /**
  * Indicates that the roll is already saved

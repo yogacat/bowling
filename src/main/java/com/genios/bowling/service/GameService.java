@@ -1,11 +1,11 @@
 package com.genios.bowling.service;
 
-import com.genios.bowling.exception.FrameNotFoundException;
+import com.genios.bowling.exception.frame.FrameNotFoundException;
 import com.genios.bowling.exception.GameAlreadyFinishedException;
 import com.genios.bowling.exception.GameNotFinishedException;
-import com.genios.bowling.exception.InvalidRollException;
-import com.genios.bowling.exception.RollAlreadyExistsException;
-import com.genios.bowling.exception.RollNotFoundException;
+import com.genios.bowling.exception.roll.InvalidRollException;
+import com.genios.bowling.exception.roll.RollAlreadyExistsException;
+import com.genios.bowling.exception.roll.RollNotFoundException;
 import com.genios.bowling.persistance.entity.Frame;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.entity.Roll;

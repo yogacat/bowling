@@ -2,7 +2,7 @@ package com.genios.bowling.service;
 
 import com.genios.bowling.configuration.BowlingConfiguration;
 import com.genios.bowling.exception.NoFreeLinesException;
-import com.genios.bowling.exception.PlayerNotFoundException;
+import com.genios.bowling.exception.player.PlayerNotFoundException;
 import com.genios.bowling.persistance.entity.Player;
 import com.genios.bowling.persistance.repository.PlayerRepository;
 import com.genios.bowling.record.response.PlayerScore;

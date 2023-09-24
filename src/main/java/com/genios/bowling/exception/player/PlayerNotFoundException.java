@@ -1,4 +1,4 @@
-package com.genios.bowling.exception;
+package com.genios.bowling.exception.player;
 
 /**
  * Indicates that no player was found.
