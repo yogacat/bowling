@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Top Scores</title>
+</head>
+<body>
+<h1>Top Scores</h1>
+<table>
+  <thead>
+  <tr>
+    <th>Player Name</th>
+    <th>Total Score</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="score : ${topScores}">
+    <td th:text="${score.name}"></td>
+    <td th:text="${score.totalScore}"></td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>
